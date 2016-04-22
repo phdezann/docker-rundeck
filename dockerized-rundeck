@@ -1,0 +1,13 @@
+#!/bin/bash
+set -e
+
+ROOT=$(dirname $0)
+HOSTNAME=$(hostname)
+DOCKER_GROUP_GID=$(cat /etc/group | grep docker | cut -f3 -d:)
+RUNDECK_USER_GID=${RUNDECK_USER_GID:-1000}
+RUNDECK_GROUP_GID=${RUNDECK_GROUP_GID:-1000}
+RUNDECK_VERSION=${RUNDECK_VERSION:-2.6.9}
+
+docker build --build-arg=HOSTNAME=$HOSTNAME --build-arg=DOCKER_GROUP_GID=$DOCKER_GROUP_GID --build-arg=RUNDECK_USER_GID=$RUNDECK_USER_GID --build-arg=RUNDECK_GROUP_GID=$RUNDECK_GROUP_GID --build-arg=RUNDECK_VERSION=$RUNDECK_VERSION -t rundeck $ROOT/rundeck
+docker create --name rundeck -p 4440:4440 $DOCKER_OPTS -v /var/run/docker.sock:/var/run/docker.sock rundeck || echo "Container for rundeck already exists."
+docker restart rundeck
